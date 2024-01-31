@@ -1,0 +1,10 @@
+README.md
+setup.py
+src/aep_profiles_kpi/__init__.py
+src/aep_profiles_kpi/main.py
+src/aep_profiles_kpi.egg-info/PKG-INFO
+src/aep_profiles_kpi.egg-info/SOURCES.txt
+src/aep_profiles_kpi.egg-info/dependency_links.txt
+src/aep_profiles_kpi.egg-info/entry_points.txt
+src/aep_profiles_kpi.egg-info/requires.txt
+src/aep_profiles_kpi.egg-info/top_level.txt
