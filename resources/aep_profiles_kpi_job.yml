@@ -12,13 +12,18 @@ resources:
       email_notifications:
         on_failure:
           - jie.xin@avanade.com
-          - raquel.pinho@henkel.com
 
       tasks:
-        - task_key: Profiles_KPI_extraction
+        - task_key: notebook_task
           job_cluster_key: job_cluster
           notebook_task:
             notebook_path: ../src/aep_profiles_kpi.ipynb
+        
+        - task_key: main_task
+          depends_on:
+            - task_key: notebook_task
+          
+          job_cluster_key: job_cluster
           python_wheel_task:
             package_name: aep_profiles_kpi
             entry_point: main

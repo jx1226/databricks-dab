@@ -11,16 +11,16 @@ targets:
     # - Deployed resources get prefixed with '[dev my_user_name]'
     # - Any job schedules and triggers are paused by default
     # - The 'development' mode is used for Delta Live Tables pipelines
-    mode: dev
+    mode: development
     default: true
     workspace:
       host: https://adb-7210415297556310.10.azuredatabricks.net
 
   qua:
-    mode: qua
+    mode: staging
     workspace:
       host: https://adb-7210415297556310.10.azuredatabricks.net
-      root_path: /Users/jie.xin@avanade.com/.bundle/${bundle.name}/${bundle.target}
+      root_path: /Users/aep_profiles_kpi/.bundle/${bundle.name}/${bundle.target}
     
     run_as:
       user_name: jie.xin@avanade.com
@@ -29,12 +29,12 @@ targets:
   prd:
     # We use 'mode: prd' to indicate this is a production deployment.
     # Doing so enables strict verification of the settings below.
-    mode: prd
+    mode: production
     workspace:
       host: https://adb-7210415297556310.10.azuredatabricks.net
       # We always use /Users/jie.xin@avanade.com for all resources to make sure we only have a single copy.
       # If this path results in an error, please make sure you have a recent version of the CLI installed.
-      root_path: /Users/jie.xin@avanade.com/.bundle/${bundle.name}/${bundle.target}
+      root_path: /Users/aep_profiles_kpi/.bundle/${bundle.name}/${bundle.target}
     run_as:
       # This runs as jie.xin@avanade.com in production. We could also use a service principal here,
       # see https://docs.databricks.com/dev-tools/bundles/permissions.html.
