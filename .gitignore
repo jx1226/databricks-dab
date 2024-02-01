@@ -1,2 +1,6 @@
 
 .databricks
+.venv
+build
+dist
+scratch
