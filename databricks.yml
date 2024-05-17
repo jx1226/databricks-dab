@@ -11,10 +11,10 @@ targets:
     # - Deployed resources get prefixed with '[dev my_user_name]'
     # - Any job schedules and triggers are paused by default
     # - The 'development' mode is used for Delta Live Tables pipelines
-    mode: dev
+    mode: development
     default: true
     workspace:
-      host: https://adb-7210415297556310.10.azuredatabricks.net
+      host: https://adb-2777141288726595.15.azuredatabricks.net
 
   qua:
     mode: qua
@@ -29,7 +29,7 @@ targets:
   prd:
     # We use 'mode: prd' to indicate this is a production deployment.
     # Doing so enables strict verification of the settings below.
-    mode: prd
+    mode: production
     workspace:
       host: https://adb-7210415297556310.10.azuredatabricks.net
       # We always use /Users/jie.xin@avanade.com for all resources to make sure we only have a single copy.
