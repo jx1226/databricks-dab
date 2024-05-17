@@ -1,9 +1,16 @@
 import os
 import logging
-from pyspark.dbutils import DBUtils
 from pyspark.sql import SparkSession
 from delta.tables import *
 
+def get_dbutils(spark):
+    try:
+        from pyspark.dbutils import DBUtils
+        dbutils = DBUtils(spark)
+    except ImportError:
+        import IPython
+        dbutils = IPython.get_ipython().user_ns["dbutils"]
+    return dbutils
 
 # Define function to map and rename records
 def map_and_rename(value):

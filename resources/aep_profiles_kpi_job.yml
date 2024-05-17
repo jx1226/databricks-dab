@@ -14,13 +14,23 @@ resources:
           - jie.xin@avanade.com
           
       tasks:
-        - task_key: notebook_task
+        - task_key: Build_Wheel
           job_cluster_key: job_cluster
-          notebook_task:
-            notebook_path: ../src/Profiles_KPI_extraction.py
           python_wheel_task:
             package_name: aep_profiles_kpi
             entry_point: main
+          libraries:
+            # By default we just include the .whl file generated for the aep_profiles_kpi package.
+            # See https://docs.databricks.com/dev-tools/bundles/library-dependencies.html
+            # for more information on how to add other libraries.
+            - whl: ../dist/*.whl
+
+        - task_key: Profiles_KPI_extraction
+          depends_on:
+            - task_key: Build_Wheel
+          job_cluster_key: job_cluster
+          notebook_task:
+            notebook_path: ../src/Profiles_KPI_extraction.py
           libraries:
             # By default we just include the .whl file generated for the aep_profiles_kpi package.
             # See https://docs.databricks.com/dev-tools/bundles/library-dependencies.html
