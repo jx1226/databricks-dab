@@ -1,4 +1,3 @@
-# The job for aep_profiles_kpi.
 resources:
   jobs:
     aep_profiles_kpi_job:
@@ -36,6 +35,10 @@ resources:
             # See https://docs.databricks.com/dev-tools/bundles/library-dependencies.html
             # for more information on how to add other libraries.
             - whl: ../dist/*.whl
+
+      parameters:
+          - name: environment
+            default: ${bundle.target}
 
       job_clusters:
         - job_cluster_key: job_cluster
