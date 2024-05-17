@@ -14,7 +14,7 @@ resources:
           - jie.xin@avanade.com
           
       tasks:
-        - task_key: Profiles_KPI_extraction
+        - task_key: notebook_task
           job_cluster_key: job_cluster
           notebook_task:
             notebook_path: ../src/Profiles_KPI_extraction.py
