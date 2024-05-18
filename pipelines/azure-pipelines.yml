@@ -1,0 +1,90 @@
+# Python package
+# Create and test a Python package on multiple Python versions.
+# Add steps that analyze code, save the dist with the build record, publish to a PyPI-compatible index, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/python
+
+pr:
+- main
+
+stages:
+- stage: DEV 
+  variables:
+  - group: cq-metrics-dev
+  jobs:
+  - deployment: DEV
+    displayName: DEV Deployment
+    pool:
+      vmImage: ubuntu-latest
+    strategy:
+     runOnce:
+       deploy:
+        steps:
+        - checkout: self
+          persistCredentials: true
+
+        - task: Bash@3
+          inputs:
+            targetType: 'inline'
+            script: |
+                curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sudo sh
+                databricks version
+          displayName: 'Install Databricks CLI'
+
+        - script: |							  
+                python -m pip install --upgrade pip
+                python -m pip install setuptools wheel
+          displayName: 'Install dependencies- for building wheel'
+
+        - task: CopyFiles@2
+          inputs:
+            SourceFolder: '$(Build.Repository.LocalPath)'
+            Contents: '**'
+            TargetFolder: '$(Build.BinariesDirectory)'
+            CleanTargetFolder: true
+            Overwrite: true
+          displayName: 'Get Artifacts'
+
+        - task: replacetokens@5
+          inputs:
+            rootDirectory: '$(Build.BinariesDirectory)'
+            targetFiles: '**/databricks.yml'
+            encoding: 'auto'
+            tokenPattern: 'azpipelines'
+            writeBOM: true
+            actionOnMissing: 'warn'
+            keepToken: false
+            enableTransforms: false
+            enableRecursion: false
+            useLegacyPattern: false
+            enableTelemetry: true
+          displayName: 'Replace tokens'
+
+        - task: Bash@3
+          inputs:
+            targetType: 'inline'
+            script: |
+                cat $(Build.BinariesDirectory)/databricks.yml
+          displayName: 'Verify file path'
+
+        - task: Bash@3
+          inputs:
+            targetType: 'inline'
+            script: |
+                echo "##vso[task.setvariable variable=DATABRICKS_BUNDLE_ROOT]$(Build.BinariesDirectory)"
+          displayName: 'Set new variables'
+
+        - task: Bash@3
+          inputs:
+            targetType: 'inline'
+            script: |
+                az login --service-principal --tenant $(tenantId) -u $(servicePrincipalId) -p $(servicePrincipalKey)
+                echo "Azure login successful"
+          displayName: 'Azure login'
+
+        - task: Bash@3
+          inputs:
+            targetType: 'inline'
+            script: |
+                databricks -v
+                databricks bundle validate
+          displayName: 'Databricks bundle validate'

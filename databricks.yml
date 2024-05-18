@@ -4,38 +4,23 @@ bundle:
 include:
   - resources/*.yml
 
+variables:
+  workspaceURL:
+    description: 'Workspace URL for Deploying Databricks Jobs'
+  bundlePath:
+    description: 'Databricks Bundle Path for Deploying Databricks Jobs'
+  deployEnv:
+    description: 'Environment literal like Dev, Qua, Prd'
+  mode:
+    description: 'Environment mode'
+  SPN:
+    description: 'SPN details'
+
 targets:
-  # The 'dev' target, for development purposes. This target is the default.
-  dev:
-    # We use 'mode: dev' to indicate this is a personal development copy:
-    # - Deployed resources get prefixed with '[dev my_user_name]'
-    # - Any job schedules and triggers are paused by default
-    # - The 'development' mode is used for Delta Live Tables pipelines
-    mode: development
-    default: true
+  $(deployEnv):
+    mode: $(mode)
     workspace:
-      host: https://adb-2777141288726595.15.azuredatabricks.net
-
-  qua:
-    mode: staging
-    workspace:
-      host: https://adb-7210415297556310.10.azuredatabricks.net
-      root_path: /Users/aep_profiles_kpi/.bundle/${bundle.name}/${bundle.target}
-    
+      host: $(workspaceURL)
+      root_path: $(bundlePath)
     run_as:
-      user_name: jie.xin@avanade.com
-
-  # The 'prd' target, used for production deployment.
-  prd:
-    # We use 'mode: prd' to indicate this is a production deployment.
-    # Doing so enables strict verification of the settings below.
-    mode: production
-    workspace:
-      host: https://adb-7210415297556310.10.azuredatabricks.net
-      # We always use /Users/jie.xin@avanade.com for all resources to make sure we only have a single copy.
-      # If this path results in an error, please make sure you have a recent version of the CLI installed.
-      root_path: /Users/aep_profiles_kpi/.bundle/${bundle.name}/${bundle.target}
-    run_as:
-      # This runs as jie.xin@avanade.com in production. We could also use a service principal here,
-      # see https://docs.databricks.com/dev-tools/bundles/permissions.html.
-      user_name: jie.xin@avanade.com
+      service_principal_name: $(SPN)
