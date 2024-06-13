@@ -1,0 +1,154 @@
+trigger:
+- none
+
+pr:
+  branches:
+    include:
+    - main
+    - test
+    - develop
+
+
+stages:
+- stage: DEV
+  displayName: 'Development'
+  pool:
+    name: s-weu-dev-CQCustomerIntelligence-vnt-pool
+  condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'), eq(variables['System.PullRequest.TargetBranch'], 'refs/heads/develop'))
+  jobs:
+  - job: DevJob
+    displayName: 'Development Job'
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.x'
+        addToPath: true
+
+    - task: AzureKeyVault@2
+      inputs:
+        azureSubscription: 'SP-raqncq-dev'
+        KeyVaultName: 's-weu-dev-cq-kv'
+        SecretsFilter: '*'
+        RunAsPreJob: false
+      displayName: "Fetch KeyVault Secrets"
+
+    - script: |
+        python -m pip install --upgrade pip setuptools wheel
+      displayName: 'Setup '
+
+    - bash: |
+        curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
+        databricks --version
+      displayName: 'Install databricks CLI'
+
+    - script: |
+        az login --service-principal -u $CLIENT_ID -p $CLIENT_SECRET --tenant $TENANT_ID
+      displayName: 'Azure CLI login'
+      env:
+        CLIENT_ID: $(sp-cq-reporting-dev-id)
+        CLIENT_SECRET: $(sp-cq-reporting-dev)
+        TENANT_ID: $(tenant-id)
+
+    - bash: |
+        CLUSTER_ID=$(DATABRICKSCLUSTERID)
+
+        # Deploy the Databricks bundle
+        cd icrm-products/AccountExport
+        databricks bundle deploy --target dev --compute-id $CLUSTER_ID
+      displayName: 'AccountExport [Job Deployment]'
+
+- stage: QUA
+  pool:
+    name: s-weu-test-CQCustomerIntelligence-vnt-pool
+  displayName: 'Quality Assurance'
+  condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'), eq(variables['System.PullRequest.TargetBranch'], 'refs/heads/test'))
+  dependsOn: DEV
+  jobs:
+  - job: QuaJob
+    displayName: 'QA Job'
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.x'
+        addToPath: true
+
+    - task: AzureKeyVault@2
+      inputs:
+        azureSubscription: 'SP-raqncq-qua'
+        KeyVaultName: 's-weu-qua-cq-kv'
+        SecretsFilter: '*'
+        RunAsPreJob: false
+      displayName: "Fetch KeyVault Secrets"
+
+    - script: |
+        python -m pip install --upgrade pip setuptools wheel
+      displayName: 'Setup '
+
+    - bash: |
+        curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
+        databricks --version
+      displayName: 'Install databricks CLI'
+
+    - script: |
+        az login --service-principal -u $CLIENT_ID -p $CLIENT_SECRET --tenant $TENANT_ID
+      displayName: 'Azure CLI login'
+      env:
+        CLIENT_ID: $(sp-cq-reporting-qua-id)
+        CLIENT_SECRET: $(sp-cq-reporting-qua)
+        TENANT_ID: $(tenant-id)
+
+    - bash: |
+        CLUSTER_ID=$(DATABRICKSCLUSTERID)
+
+        # Deploy the Databricks bundle
+        cd icrm-products/AccountExport
+        databricks bundle deploy --target qua --compute-id $CLUSTER_ID
+      displayName: 'AccountExport [Job Deployment]'
+
+- stage: PRD
+  pool:
+    name: s-prd-test-CQCustomerIntelligence-vnt-pool
+  displayName: 'Production'
+  condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'), eq(variables['System.PullRequest.TargetBranch'], 'refs/heads/main'))
+  dependsOn: QUA
+  jobs:
+  - job: PrdJob
+    displayName: 'Production Job'
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.x'
+        addToPath: true
+
+    - task: AzureKeyVault@2
+      inputs:
+        azureSubscription: 'SP-raqncq-prd'
+        KeyVaultName: 's-weu-prd-cq-kv'
+        SecretsFilter: '*'
+        RunAsPreJob: false
+      displayName: "Fetch KeyVault Secrets"
+
+    - script: |
+        python -m pip install --upgrade pip setuptools wheel
+      displayName: 'Setup '
+
+    - bash: |
+        curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
+        databricks --version
+      displayName: 'Install databricks CLI'
+
+    - script: |
+        az login --service-principal -u $CLIENT_ID -p $CLIENT_SECRET --tenant $TENANT_ID
+      displayName: 'Azure CLI login'
+      env:
+        CLIENT_ID: $(sp-cq-reporting-prd-id)
+        CLIENT_SECRET: $(sp-cq-reporting-prd)
+        TENANT_ID: $(tenant-id)
+
+    - bash: |
+        CLUSTER_ID=$(DATABRICKSCLUSTERID)
+
+        # Deploy the Databricks bundle
+        cd icrm-products/AccountExport
+        databricks bundle deploy --target prd --compute-id $CLUSTER_ID
+      displayName: 'AccountExport [Job Deployment]'
